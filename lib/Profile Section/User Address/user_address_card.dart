@@ -42,9 +42,7 @@ class _UserAddressCardState extends State<UserAddressCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Your Addresses",
-                        style: getTextStyle(
-                        )),
+                    Text("Your Addresses", style: getTextStyle()),
                     if (isSmallScreen) const SizedBox(height: 8),
                     Align(
                       alignment: isSmallScreen
@@ -123,9 +121,7 @@ class _UserAddressCardState extends State<UserAddressCard> {
               Text(
                   "${address['city']}, ${address['state']}, ${address['postal_code']}, ${address['country']}",
                   style: getTextStyle(
-                    fontSize: 14,
-                      fontWeight: FontWeight.normal
-                  )),
+                      fontSize: 14, fontWeight: FontWeight.normal)),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -135,14 +131,14 @@ class _UserAddressCardState extends State<UserAddressCard> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
-                              TextButton(
-                                onPressed: () {
-                                  // Add functionality for editing the address
-                                },
-                                child: Text("Edit", style: getTextStyle(
-                                    fontWeight: FontWeight.normal
-                                )),
-                              ),
+                              // TextButton(
+                              //   onPressed: () {
+                              //     // Add functionality for editing the address
+                              //   },
+                              //   child: Text("Edit",
+                              //       style: getTextStyle(
+                              //           fontWeight: FontWeight.normal)),
+                              // ),
                               TextButton(
                                 onPressed: () {
                                   controller
@@ -150,21 +146,22 @@ class _UserAddressCardState extends State<UserAddressCard> {
                                 },
                                 child: Text("Delete",
                                     style: getTextStyle(
-                                      color: Colors.red,
-                                        fontWeight: FontWeight.normal
-                                    )),
+                                        color: Colors.red,
+                                        fontWeight: FontWeight.normal)),
                               ),
                             ],
                           ),
                         ),
                       ]
                     : [
-                        TextButton(
-                          onPressed: () {
-                            // Add functionality for editing the address
-                          },
-                          child: Text("Edit", style: getTextStyle(fontWeight: FontWeight.normal)),
-                        ),
+                        // TextButton(
+                        //   onPressed: () {
+                        //     // Add functionality for editing the address
+                        //   },
+                        //   child: Text("Edit",
+                        //       style:
+                        //           getTextStyle(fontWeight: FontWeight.normal)),
+                        // ),
                         TextButton(
                           onPressed: () {
                             controller.deleteAddress(address['address_id']);

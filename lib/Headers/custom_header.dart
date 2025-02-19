@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../Component/header_component.dart';
+import 'package:go_router/go_router.dart';
 
 class Header extends StatelessWidget {
   const Header({super.key});
@@ -68,18 +69,23 @@ class Header extends StatelessWidget {
                 // Right Side: Menu Items
                 Row(
                   children: [
-                    ActionItem(
-                      title: "ABOUT US",
-                      fontSize: actionItemFontSize,
-                      fontWeight: FontWeight.w600,
-                      textColor: Colors.black54,
+                    GestureDetector(
+                      onTap: (){
+                        context.go("/about-us");
+                      },
+                      child: ActionItem(
+                        title: "ABOUT US",
+                        fontSize: actionItemFontSize,
+                        fontWeight: FontWeight.bold,
+                        textColor: Colors.black,
+                      ),
                     ),
                     SizedBox(width: itemSpacing),
                     ActionItem(
-                      title: "CONTACT US",
+                      title: "TRACT ORDER",
                       fontSize: actionItemFontSize,
-                      fontWeight: FontWeight.w600,
-                      textColor: Colors.black54,
+                      fontWeight: FontWeight.bold,
+                      textColor: Colors.black,
                     ),
                   ],
                 ),

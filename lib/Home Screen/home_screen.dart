@@ -41,7 +41,6 @@ class _MenScreenState extends State<MenScreen> {
           // Sticky Header2
           SliverPersistentHeader(
             pinned: true,
-
             delegate: Header2Delegate(
               child: const Header2(),
             ),
@@ -146,6 +145,7 @@ class _MenScreenState extends State<MenScreen> {
                                         crossAxisAlignment:
                                             CrossAxisAlignment.center,
                                         children: [
+
                                           // Animated Image with hover effect
                                           Expanded(
                                             child: MouseRegion(

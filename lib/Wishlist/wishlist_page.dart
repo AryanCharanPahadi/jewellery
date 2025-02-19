@@ -1,18 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jewellery/Wishlist/wishlist_controller.dart';
 import '../Component/text_container.dart';
 import '../Component/text_style.dart';
 import '../Headers/custom_header.dart';
 import '../Headers/header2_delegates.dart';
 import '../Headers/second_header.dart';
 import '../Footer/footer.dart';
+import '../Shared Preferences/shared_preferences_helper.dart';
 
-class WishlistPage extends StatelessWidget {
+class WishlistPage extends StatefulWidget {
   WishlistPage({super.key});
 
-  final WishlistController controller = Get.put(WishlistController());
+  @override
+  State<WishlistPage> createState() => _WishlistPageState();
+}
+
+class _WishlistPageState extends State<WishlistPage> {
+  List<Map<String, dynamic>> wishlistItems = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWishlistItems();
+  }
+
+  Future<void> _loadWishlistItems() async {
+    try {
+      final items = await SharedPreferencesHelper.getWishlistItems();
+      setState(() {
+        wishlistItems = items;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      debugPrint("Error loading wishlist items: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,15 +58,11 @@ class WishlistPage extends StatelessWidget {
                 const SizedBox(height: 30),
                 const TextContainer(title: "Welcome To Wishlist"),
                 const SizedBox(height: 30),
-                Obx(() {
-                  if (controller.isLoading.value) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (controller.products.isEmpty) {
-                    return _buildEmptyWishlistButton(context);
-                  } else {
-                    return _buildWishlistGrid(screenWidth);
-                  }
-                }),
+                isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : wishlistItems.isEmpty
+                        ? _buildEmptyWishlistButton(context)
+                        : _buildWishlistGrid(screenWidth),
                 const SizedBox(height: 30),
                 const TextContainer(
                     title:
@@ -87,17 +110,17 @@ class WishlistPage extends StatelessWidget {
           mainAxisSpacing: 12,
           childAspectRatio: screenWidth < 400 ? 0.7 : 0.8,
         ),
-        itemCount: controller.products.length,
+        itemCount: wishlistItems.length,
         itemBuilder: (context, index) {
-          final product = controller.products[index];
-          final images = product.itemImg.split(',');
-          final itemName = product.itemName;
+          final product = wishlistItems[index];
+          final images = product["itemImg"].split(',');
+          final itemName = product["itemName"];
           ValueNotifier<int> hoveredImageIndex = ValueNotifier<int>(0);
 
           return GestureDetector(
             onTap: () {
-              GoRouter.of(context).go('/${product.itemTitle}/product-detail',
-                  extra: product.toJson());
+              GoRouter.of(context).go('/${product["itemTitle"]}/product-detail',
+                  extra: product);
             },
             child: Container(
               decoration: BoxDecoration(
@@ -130,8 +153,9 @@ class WishlistPage extends StatelessWidget {
                             icon: const Icon(Icons.delete, color: Colors.red),
                             tooltip: "Remove from wishlist",
                             onPressed: () async {
-                              await controller
-                                  .deleteItemFromCart(product.itemId);
+                              await SharedPreferencesHelper.removeFromWishlist(
+                                  product["itemId"]);
+                              _loadWishlistItems();
                             },
                           ),
                         ),
@@ -149,8 +173,12 @@ class WishlistPage extends StatelessWidget {
                   ),
                   GestureDetector(
                     onTap: () async {
-                      await controller.addToCart(product, context);
-                      controller.products.remove(product);
+                      bool isInCart = await SharedPreferencesHelper.isItemInCart(product["itemId"]);
+                      if (!isInCart) {
+                        await SharedPreferencesHelper.addToCart(product);
+                      }
+                      await SharedPreferencesHelper.removeFromWishlist(product["itemId"]);
+                      _loadWishlistItems();
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
@@ -161,7 +189,7 @@ class WishlistPage extends StatelessWidget {
                       ),
                       child: Text("Add To Cart", style: getTextStyle()),
                     ),
-                  ),
+                  )
                 ],
               ),
             ),

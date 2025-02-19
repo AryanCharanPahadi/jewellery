@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
 import 'package:get/get.dart';
 import 'package:jewellery/Product%20Details/product_modal.dart';
 import '../../Api Helper/api_helper.dart';
@@ -12,11 +14,8 @@ import '../../Headers/second_header.dart';
 import '../../Home Screen/home_controller.dart';
 import '../../Shared Preferences/shared_preferences_helper.dart';
 import '../../Wishlist/wishlist_controller.dart';
-import '../Component/show_pop_up.dart';
-import 'Review/customer_review_ui.dart';
+
 import 'SImilar Product/related_products.dart';
-import 'add_to_cart_button.dart';
-import 'add_to_wishlist_button.dart';
 
 class ProductDetailScreen extends StatefulWidget {
   final Product? product;
@@ -31,6 +30,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   late Future<List<Product>> _products;
   final ScrollController _scrollController = ScrollController();
   bool isInCart = false;
+  bool isInWishlist = false;
   final WishlistController wishlistController = Get.put(WishlistController());
 
   @override
@@ -38,6 +38,7 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     super.initState();
     _products = ApiService().fetchJewellaryProducts(widget.product!.itemTitle);
     _checkIfProductInCart();
+    _checkIfProductInWishlist();
   }
 
   void showFullImageDialog(BuildContext context, String imageUrl) {
@@ -85,11 +86,61 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
     }
   }
 
+  Future<void> _checkIfProductInWishlist() async {
+    if (widget.product != null) {
+      bool productExists = await _isProductInWishlist(widget.product!.itemId);
+      setState(() {
+        isInWishlist = productExists;
+      });
+    }
+  }
+
   Future<bool> _isProductInCart(int productId) async {
-    int? userId = await SharedPreferencesHelper.getUserId();
-    if (userId == null) return false;
-    final cartProducts = await ApiService().fetchAddToCartProducts(userId);
-    return cartProducts.any((product) => product.itemId == productId);
+    final cartItems = await SharedPreferencesHelper.getCartItems();
+    return cartItems.any((item) => item['itemId'] == productId);
+  }
+
+  Future<bool> _isProductInWishlist(int productId) async {
+    final wishlistItems = await SharedPreferencesHelper.getWishlistItems();
+    return wishlistItems.any((item) => item['itemId'] == productId);
+  }
+
+  Future<void> _addToCart() async {
+    if (widget.product != null) {
+      final product = {
+        'itemId': widget.product!.itemId,
+        'itemTitle': widget.product!.itemTitle,
+        'itemName': widget.product!.itemName,
+        'itemPrice': widget.product!.itemPrice,
+        'itemSize': widget.product!.itemSize,
+        'itemDesc': widget.product!.itemDesc,
+        'itemImg': widget.product!.itemImg,
+      };
+      await SharedPreferencesHelper.addToCart(product);
+      setState(() {
+        isInCart = true;
+      });
+      Get.snackbar('Success', 'Product added to cart!');
+    }
+  }
+
+  Future<void> _addToWishlist() async {
+    if (widget.product != null) {
+      final product = {
+        'itemId': widget.product!.itemId,
+        'itemTitle': widget.product!.itemTitle,
+        'itemName': widget.product!.itemName,
+        'itemPrice': widget.product!.itemPrice,
+        'itemSize': widget.product!.itemSize,
+        'itemDesc': widget.product!.itemDesc,
+        'itemImg': widget.product!.itemImg,
+      };
+      await SharedPreferencesHelper.addToWishlist(product);
+      setState(() {
+        isInWishlist = true;
+      });
+      Get.snackbar('Success', 'Product added to wishlist!');
+    }
   }
 
   @override
@@ -356,49 +407,135 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             return Row(
                                               children: [
                                                 Expanded(
-                                                  child: AddToCartButton(
-                                                    isInCart: isInCart,
-                                                    loadedProduct:
-                                                        loadedProduct,
-                                                    onCartUpdated:
-                                                        (bool updated) {
-                                                      setState(() {
-                                                        isInCart = updated;
-                                                      });
-                                                    },
+                                                  child: ElevatedButton(
+                                                    onPressed: isInCart
+                                                        ? () {
+                                                            // Navigate to the cart screen
+                                                            context.go(
+                                                                '/add-to-cart');
+                                                          }
+                                                        : _addToCart,
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                          vertical: 14,
+                                                          horizontal: 24),
+                                                      backgroundColor:
+                                                          Colors.yellowAccent,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(8.0),
+                                                      ),
+                                                    ),
+                                                    child: Text(
+                                                      isInCart
+                                                          ? "Go to Cart"
+                                                          : "Add To Cart",
+                                                      style: getTextStyle(),
+                                                    ),
                                                   ),
                                                 ),
                                                 const SizedBox(width: 16),
                                                 Expanded(
-                                                  child: AddToWishlistButton(
-                                                    loadedProduct:
-                                                        loadedProduct,
-                                                    wishlistController:
-                                                        wishlistController,
+                                                    child: ElevatedButton(
+                                                  onPressed: isInWishlist
+                                                      ? () {
+                                                          // Navigate to the cart screen
+                                                          context
+                                                              .go('/wishlist');
+                                                        }
+                                                      : _addToWishlist,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 14,
+                                                        horizontal: 24),
+                                                    backgroundColor:
+                                                        Colors.yellowAccent,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8.0),
+                                                    ),
                                                   ),
-                                                ),
+                                                  child: Text(
+                                                    isInWishlist
+                                                        ? "Go to Wishlist"
+                                                        : "Add To Wishlist",
+                                                    style: getTextStyle(),
+                                                  ),
+                                                )),
                                               ],
                                             );
                                           } else {
                                             // Small screen: display buttons in a column
                                             return Column(
                                               children: [
-                                                AddToCartButton(
-                                                  isInCart: isInCart,
-                                                  loadedProduct: loadedProduct,
-                                                  onCartUpdated:
-                                                      (bool updated) {
-                                                    setState(() {
-                                                      isInCart = updated;
-                                                    });
-                                                  },
+                                                ElevatedButton(
+                                                  onPressed: isInCart
+                                                      ? () {
+                                                          context.go(
+                                                              '/add-to-cart');
+                                                        }
+                                                      : _addToCart,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 14,
+                                                        horizontal: 24),
+                                                    backgroundColor:
+                                                        Colors.yellowAccent,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8.0),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    isInCart
+                                                        ? "Go to Cart"
+                                                        : "Add To Cart",
+                                                    style: getTextStyle(),
+                                                  ),
                                                 ),
                                                 const SizedBox(height: 16),
-                                                AddToWishlistButton(
-                                                  loadedProduct: loadedProduct,
-                                                  wishlistController:
-                                                      wishlistController,
-                                                ),
+                                                ElevatedButton(
+                                                  onPressed: isInWishlist
+                                                      ? () {
+                                                          // Navigate to the cart screen
+                                                          context
+                                                              .go('/wishlist');
+                                                        }
+                                                      : _addToWishlist,
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        vertical: 14,
+                                                        horizontal: 24),
+                                                    backgroundColor:
+                                                        Colors.yellowAccent,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8.0),
+                                                    ),
+                                                  ),
+                                                  child: Text(
+                                                    isInWishlist
+                                                        ? "Go to Wishlist"
+                                                        : "Add To Wishlist",
+                                                    style: getTextStyle(),
+                                                  ),
+                                                )
                                               ],
                                             );
                                           }
@@ -422,56 +559,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                     scrollController: _scrollController,
                   ),
                   const SizedBox(height: 30),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Customer Reviews",
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.brown,
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "See what our clients have to say",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.brown.shade400,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 24, vertical: 12),
-                        ),
-                        onPressed: () {
-                          PopupDialog(
-                                  parentContext: context,
-                                  childWidget: const CustomerReviewUi())
-                              .show();
-                        },
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              "Write A Review",
-                              style:
-                                  TextStyle(fontSize: 16, color: Colors.white),
-                            ),
-                            SizedBox(width: 8),
-                            Icon(Icons.arrow_forward, color: Colors.white),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
                   const ResponsiveFooter(),
                 ]),
               )

@@ -12,7 +12,7 @@ import '../Sign Up/signup_modal.dart';
 import '../Wishlist/wishlist_modal.dart';
 
 class ApiService {
-  static const String _baseUrl = 'https://vedvika.com/jewellery/';
+  static const String _baseUrl = 'http://localhost/jewellary/';
   static void showSnackBar(BuildContext context, String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -88,7 +88,7 @@ class ApiService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error fetching category images: $e');
+        // print('Error fetching category images: $e');
       }
       return [];
     }
@@ -106,7 +106,7 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         if (kDebugMode) {
-          print(data);
+          // print(data);
         }
 
         // Check if 'data' exists and is a list
@@ -122,7 +122,7 @@ class ApiService {
       }
     } catch (e) {
       // Print the error for debugging
-      debugPrint('Error in fetchMenProducts: $e');
+      // debugPrint('Error in fetchMenProducts: $e');
       throw Exception('Failed to load products');
     }
   }
@@ -135,23 +135,23 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('API Response: $data');
+        // debugPrint('API Response: $data');
 
         if (data is Map<String, dynamic> && data['data'] is List) {
           return (data['data'] as List)
               .map((item) => Product.fromJson(item as Map<String, dynamic>))
               .toList();
         } else {
-          debugPrint('Unexpected response structure: $data');
+          // debugPrint('Unexpected response structure: $data');
           throw Exception('Unexpected response structure');
         }
       } else {
-        debugPrint(
-            'Failed to fetch products. Status code: ${response.statusCode}, Reason: ${response.reasonPhrase}');
+        // debugPrint(
+        //     'Failed to fetch products. Status code: ${response.statusCode}, Reason: ${response.reasonPhrase}');
         throw Exception('Failed to load products');
       }
     } catch (e) {
-      debugPrint('Error in fetch Products: $e');
+      // debugPrint('Error in fetch Products: $e');
       throw Exception('Failed to load products');
     }
   }
@@ -182,7 +182,7 @@ class ApiService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error: $e');
+        // print('Error: $e');
       }
       if (context.mounted) {
         showSnackBar(context, 'Failed to connect to API $e', Colors.red);
@@ -208,15 +208,15 @@ class ApiService {
           response.statusCode == 409 ||
           response.statusCode == 400) {
         if (context.mounted) {
-          handleResponse(response, context);
+          // handleResponse(response, context);
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error: $e');
+        // print('Error: $e');
       }
       if (context.mounted) {
-        showSnackBar(context, 'Failed to connect to API $e', Colors.red);
+        // showSnackBar(context, 'Failed to connect to API $e', Colors.red);
       }
     }
   }
@@ -246,8 +246,8 @@ class ApiService {
           var address = data['user']['address'] ?? {}; // Get address data
 
           if (kDebugMode) {
-            print(user);
-            print(address);
+            // print(user);
+            // print(address);
           }
 
           return {
@@ -256,6 +256,9 @@ class ApiService {
                 'Unknown Id', // Fallback if 'user_id' is null
             'name':
                 user['name'] ?? 'Unknown User', // Fallback if 'name' is null
+
+            'password': user['password'] ??
+                'Unknown User', // Fallback if 'name' is null
             'date_of_birth': user['date_of_birth'] ??
                 'Unknown User', // Fallback if 'name' is null
             'anniversary_date': user['anniversary_date'] ??
@@ -278,7 +281,7 @@ class ApiService {
       }
       return {'success': false}; // Return false if lo,k,k,tj gin fails
     } catch (e) {
-      if (kDebugMode) print('Error: $e');
+      // if (kDebugMode) print('Error: $e');
       if (context.mounted) {
         showSnackBar(context, 'Failed to connect to API $e', Colors.red);
       }
@@ -315,7 +318,7 @@ class ApiService {
     } else {
       // If the server returns an error
       if (kDebugMode) {
-        print('Failed to delete from cart: ${response.statusCode}');
+        // print('Failed to delete from cart: ${response.statusCode}');
       }
       return false;
     }
@@ -374,7 +377,7 @@ class ApiService {
       // Check response status
       if (response.statusCode == 200) {
         if (kDebugMode) {
-          print("Response Body: ${response.body}");
+          // print("Response Body: ${response.body}");
         }
         // Parse the response body as a map
         final Map<String, dynamic> responseMap = json.decode(response.body);
@@ -390,14 +393,14 @@ class ApiService {
         }
       } else {
         if (kDebugMode) {
-          print("Error: ${response.statusCode}, Body: ${response.body}");
+          // print("Error: ${response.statusCode}, Body: ${response.body}");
         }
         return []; // Return an empty list on error
       }
     } catch (e) {
       // Handle exceptions
       if (kDebugMode) {
-        print("Exception: $e");
+        // print("Exception: $e");
       }
       return []; // Return an empty list on exception
     }
@@ -429,7 +432,7 @@ class ApiService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error: $e');
+        // print('Error: $e');
       }
       if (context.mounted) {
         showSnackBar(context, 'Failed to connect to API: $e', Colors.red);
@@ -467,7 +470,7 @@ class ApiService {
     } else {
       // If the server returns an error
       if (kDebugMode) {
-        print('Failed to delete from cart: ${response.statusCode}');
+        // print('Failed to delete from cart: ${response.statusCode}');
       }
       return false;
     }
@@ -482,23 +485,23 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        debugPrint('API Response: $data');
+        // debugPrint('API Response: $data');
 
         if (data is Map<String, dynamic> && data['data'] is List) {
           return (data['data'] as List)
               .map((item) => Product.fromJson(item as Map<String, dynamic>))
               .toList();
         } else {
-          debugPrint('Unexpected response structure: $data');
+          // debugPrint('Unexpected response structure: $data');
           throw Exception('Unexpected response structure');
         }
       } else {
-        debugPrint(
-            'Failed to fetch products. Status code: ${response.statusCode}, Reason: ${response.reasonPhrase}');
+        // debugPrint(
+        //     'Failed to fetch products. Status code: ${response.statusCode}, Reason: ${response.reasonPhrase}');
         throw Exception('Failed to load products');
       }
     } catch (e) {
-      debugPrint('Error in fetch Products: $e');
+      // debugPrint('Error in fetch Products: $e');
       throw Exception('Failed to load products');
     }
   }
@@ -532,7 +535,7 @@ class ApiService {
     } else {
       // If the server returns an error
       if (kDebugMode) {
-        print('Failed to delete from cart: ${response.statusCode}');
+        // print('Failed to delete from cart: ${response.statusCode}');
       }
       return false;
     }
@@ -565,13 +568,14 @@ class ApiService {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error: $e');
+        // print('Error: $e');
       }
       if (context.mounted) {
         showSnackBar(context, 'Failed to connect to API $e', Colors.red);
       }
     }
   }
+
   static Future<List<dynamic>> fetchCustomerRatings() async {
     final String url = "http://localhost/jewellary/get/customer_rating.php";
 
@@ -580,7 +584,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         var jsonResponse = jsonDecode(response.body);
-        print(response.body);
+        // print(response.body);
 
         // If the API response is a map, extract the list
         if (jsonResponse is Map<String, dynamic>) {
@@ -601,4 +605,59 @@ class ApiService {
       throw Exception("Error fetching customer ratings: $e");
     }
   }
+  static Future<bool> updateUserLogin({
+    required int id,
+    required String name,
+    required String email,
+    required String phone,
+    required String password,
+    required String anniversaryDate,
+    required String dateOfBirth,
+    required BuildContext context,
+  }) async {
+    try {
+      final uri = Uri.parse(
+          'http://localhost/jewellary/user/edit/edit_user_detail.php');
+      final request = http.MultipartRequest('POST', uri);
+
+      // Add fields
+      request.fields['user_id'] = id.toString();
+      request.fields['name'] = name;
+      request.fields['email'] = email;
+      request.fields['phone'] = phone;
+      request.fields['password'] = password;
+      request.fields['anniversary_date'] = anniversaryDate;
+      request.fields['date_of_birth'] = dateOfBirth;
+
+      // Debug print
+      print("🚀 Sending request to: $uri");
+      print("📤 Request fields: ${request.fields}");
+
+      final response = await request.send();
+
+      // Read response data
+      final responseData = await response.stream.bytesToString();
+      print("📥 Response Status Code: ${response.statusCode}");
+      print("📜 Response Data: $responseData");
+
+      final jsonResponse = json.decode(responseData);
+
+      if (context.mounted) {
+        showSnackBar(
+          context,
+          jsonResponse['message'] ?? 'Unexpected response from the server.',
+          response.statusCode == 200 ? Colors.green : Colors.red,
+        );
+      }
+
+      return jsonResponse['status'] == "success"; // ✅ Return based on API response
+    } catch (e) {
+      print('❌ Error updating login details: $e');
+      if (context.mounted) {
+        showSnackBar(context, 'An error occurred: $e', Colors.red);
+      }
+      return false;
+    }
+  }
+
 }

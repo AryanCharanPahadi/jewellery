@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jewellery/Login%20Page/login_page.dart';
 import '../Component/text_style.dart';
+import '../Component/unique_id.dart';
 import '../Profile Section/Add Address/add_address.dart';
 import '../Profile Section/User Address/list_of_address.dart';
 import '../Api Helper/api_helper.dart';
@@ -10,16 +12,11 @@ import '../Headers/custom_header.dart';
 import '../Headers/header2_delegates.dart';
 import '../Headers/second_header.dart';
 import '../Footer/footer.dart';
-import '../Product Details/product_modal.dart';
-import '../Profile Section/User Address/user_address_controller.dart';
+
 import '../Shared Preferences/shared_preferences_helper.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 
-import '../../Component/show_pop_up.dart';
-
-
+import 'add_to_cart_modal.dart';
 
 class AddToCart extends StatefulWidget {
   const AddToCart({super.key});
@@ -30,43 +27,27 @@ class AddToCart extends StatefulWidget {
 
 class _AddToCartState extends State<AddToCart> {
   var selectedQuantities = <int, int>{};
-  int? userId;
-  List<dynamic> products = [];
+  List<Map<String, dynamic>> cartItems = [];
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUserId();
+    _loadCartItems();
   }
 
-  Future<void> _loadUserId() async {
-    final fetchedUserId = await SharedPreferencesHelper.getUserId();
-    setState(() {
-      userId = fetchedUserId;
-    });
-
-    if (userId != null) {
-      _fetchCartProducts();
-    } else {
-      setState(() {
-        isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _fetchCartProducts() async {
+  Future<void> _loadCartItems() async {
     try {
-      var fetchedProducts = await ApiService().fetchAddToCartProducts(userId!);
+      final items = await SharedPreferencesHelper.getCartItems();
       setState(() {
-        products = fetchedProducts.cast<Product>();
+        cartItems = items;
         isLoading = false;
       });
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      debugPrint("Error fetching products: $e");
+      debugPrint("Error loading cart items: $e");
     }
   }
 
@@ -102,7 +83,7 @@ class _AddToCartState extends State<AddToCart> {
                 const SizedBox(height: 30),
                 if (isLoading)
                   const Center(child: CircularProgressIndicator())
-                else if (products.isEmpty)
+                else if (cartItems.isEmpty)
                   _buildEmptyCartButton(screenWidth)
                 else
                   _buildCartContent(screenWidth, isLargeScreen),
@@ -120,16 +101,14 @@ class _AddToCartState extends State<AddToCart> {
 
   Widget _buildEmptyCartButton(double screenWidth) {
     return Center(
-      child: ElevatedButton(
-        onPressed: () => context.go("/"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.amber,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.0)),
-        ),
-        child: Text('Continue Shopping', style: getTextStyle()),
-      ),
-    );
+        child: ElevatedButton(
+            onPressed: () => context.go("/"),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.amber,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0)),
+            ),
+            child: Text('Continue Shopping', style: getTextStyle())));
   }
 
   Widget _buildCartContent(double screenWidth, bool isLargeScreen) {
@@ -158,22 +137,22 @@ class _AddToCartState extends State<AddToCart> {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: products.length,
+      itemCount: cartItems.length,
       itemBuilder: (context, index) {
-        final product = products[index];
-        final images = product.itemImg.split(',');
+        final product = cartItems[index];
+        final images = product['itemImg'].split(',');
 
         return Card(
           color: Colors.white,
           margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: ListTile(
             leading: _buildProductImage(screenWidth, images.first),
-            title: _buildProductTitle(product.itemName, screenWidth),
+            title: _buildProductTitle(product['itemName'], screenWidth),
             subtitle: _buildProductDetails(product, screenWidth),
             trailing: IconButton(
               icon: const Icon(Icons.delete, color: Colors.red),
               onPressed: () =>
-                  _showDeleteConfirmationDialog(context, product.itemId),
+                  _showDeleteConfirmationDialog(context, product['itemId']),
             ),
           ),
         );
@@ -182,7 +161,7 @@ class _AddToCartState extends State<AddToCart> {
   }
 
   Future<void> _showDeleteConfirmationDialog(
-      BuildContext context, int productId) {
+      BuildContext context, int productId) async {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -200,6 +179,7 @@ class _AddToCartState extends State<AddToCart> {
             TextButton(
               onPressed: () async {
                 Navigator.of(context).pop(); // Close the dialog
+                await _removeItemFromCart(productId); // Remove item
                 await deleteItemFromCart(productId); // Proceed with deletion
               },
               child: const Text('OK'),
@@ -211,14 +191,27 @@ class _AddToCartState extends State<AddToCart> {
   }
 
   Future<void> deleteItemFromCart(int productId) async {
+    int? userId = await SharedPreferencesHelper.getUserId();
+
     bool success = await ApiService.deleteFromCart(
         productId.toString(), userId.toString());
     if (success) {
       setState(() {
-        products.removeWhere((product) => product.itemId == productId);
+        cartItems.removeWhere((product) => product['itemId'] == productId);
       });
     } else {
       debugPrint("Failed to delete the product.");
+    }
+  }
+
+  Future<void> _removeItemFromCart(int productId) async {
+    try {
+      await SharedPreferencesHelper.removeFromCart(productId);
+      setState(() {
+        cartItems.removeWhere((item) => item['itemId'] == productId);
+      });
+    } catch (e) {
+      debugPrint("Error removing item from cart: $e");
     }
   }
 
@@ -245,11 +238,12 @@ class _AddToCartState extends State<AddToCart> {
         ));
   }
 
-  Widget _buildProductDetails(dynamic product, double screenWidth) {
+  Widget _buildProductDetails(
+      Map<String, dynamic> product, double screenWidth) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('₹ ${product.itemPrice}',
+        Text('₹ ${product['itemPrice']}',
             style: getTextStyle(
               fontWeight: FontWeight.w500,
               fontSize: _getTextSize(screenWidth, 14),
@@ -264,7 +258,7 @@ class _AddToCartState extends State<AddToCart> {
                 )),
             const SizedBox(width: 8),
             DropdownButton<int>(
-              value: selectedQuantities[product.itemId] ?? 1,
+              value: selectedQuantities[product['itemId']] ?? 1,
               items: List.generate(
                 10,
                 (qtyIndex) => DropdownMenuItem(
@@ -274,7 +268,7 @@ class _AddToCartState extends State<AddToCart> {
               ),
               onChanged: (value) {
                 setState(() {
-                  selectedQuantities[product.itemId] = value!;
+                  selectedQuantities[product['itemId']] = value!;
                 });
               },
             ),
@@ -371,182 +365,46 @@ class _AddToCartState extends State<AddToCart> {
   }
 
   Future<void> _handleCheckout() async {
-    final fetchedUserId = await SharedPreferencesHelper.getUserId();
-    if (fetchedUserId != null) {
-      _showAddressPopup(fetchedUserId);
+    final loginStatus = await LoginStatusHelper().checkLoginStatus();
+    if (loginStatus) {
+      int? userId = await SharedPreferencesHelper.getUserId();
+      String formattedDate = getFormattedDate();
+
+      if (userId != null) {
+        List<AddToCartModal> cartData = cartItems.map((product) {
+          return AddToCartModal(
+            userId: userId,
+            pId: product['itemId'], // Extracting product ID
+            pPrice: product['itemPrice'], // Extracting product price
+            createdAt: formattedDate,
+          );
+        }).toList();
+
+        for (var item in cartData) {
+          await ApiService.addToCart(item, context);
+        }
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (context.mounted) {
+          PopupDialog(parentContext: context, childWidget: ListOfAddress())
+              .show();
+        }
+      });
     } else {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (context.mounted) {
-          PopupDialog(parentContext: context, childWidget: AddAddress()).show();
+          PopupDialog(parentContext: context, childWidget: LoginPage()).show();
         }
       });
-    }
-  }
-
-  Future<void> _showAddressPopup(int fetchedUserId) async {
-    try {
-      var fetchedAddresses =
-          await ApiService.getUserAddress(fetchedUserId.toString());
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (context.mounted) {
-          if (fetchedAddresses.isEmpty) {
-            PopupDialog(parentContext: context, childWidget: AddAddress())
-                .show();
-          } else {
-            PopupDialog(
-                    parentContext: context, childWidget: const ListOfAddress())
-                .show();
-            debugPrint("Clicked to checkout");
-          }
-        }
-      });
-    } catch (e) {
-      debugPrint("Error fetching addresses: $e");
     }
   }
 
   double calculateTotalAmount() {
-    return products.fold(0.0, (total, product) {
-      final price = double.tryParse(product.itemPrice) ?? 0.0;
-      final quantity = selectedQuantities[product.itemId] ?? 1;
+    return cartItems.fold(0.0, (total, product) {
+      final price = double.tryParse(product['itemPrice']) ?? 0.0;
+      final quantity = selectedQuantities[product['itemId']] ?? 1;
       return total + price * quantity;
     });
   }
 }
-
-
-class ListOfAddress extends StatefulWidget {
-  const ListOfAddress({super.key});
-
-  @override
-  State<ListOfAddress> createState() => _ListOfAddressState();
-}
-
-class _ListOfAddressState extends State<ListOfAddress> {
-  final UserAddressController userAddressController = Get.put(UserAddressController());
-  int? _selectedAddressId;
-
-  @override
-  void initState() {
-    super.initState();
-    userAddressController.loadAddresses(); // Load addresses from the controller
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Obx(() {
-          if (userAddressController.isLoading.value) {
-            return const CircularProgressIndicator();
-          }
-
-          final addresses = userAddressController.addresses;
-
-          if (addresses.isEmpty) {
-            return const Text(
-              "No address available",
-              style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
-            );
-          }
-
-          return Dialog(
-            insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Select Address",
-                    style: TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 16.0),
-
-                  // Dropdown for Address Selection
-                  DropdownButton<int>(
-                    value: _selectedAddressId,
-                    hint: const Text("Select Address"),
-                    onChanged: (int? value) {
-                      setState(() {
-                        _selectedAddressId = value;
-                      });
-                    },
-                    items: addresses.map((address) {
-                      final fullAddress = [
-                        address['address1'],
-                        address['address2'],
-                        address['city'],
-                        address['state'],
-                        address['postal_code'],
-                        address['country'],
-                      ]
-                          .where((element) => element != null && element.isNotEmpty)
-                          .join(", ");
-
-                      // Adjusting the text size based on the address length
-                      double fontSize = fullAddress.length > 80
-                          ? 12.0
-                          : fullAddress.length > 60
-                          ? 14.0
-                          : 16.0;
-
-                      return DropdownMenuItem<int>(
-                        value: address['address_id'],
-                        child: Text(
-                          "Address: $fullAddress",
-                          style: TextStyle(fontSize: fontSize),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1, // Ensure text stays on one line
-                        ),
-                      );
-                    }).toList(),
-                  ),
-
-                  // Button to add a new address
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context); // Close the popup
-                      PopupDialog(
-                        parentContext: context,
-                        childWidget: AddAddress(),
-                      ).show();
-                    },
-                    child: const Text("Add New Address"),
-                  ),
-                  const SizedBox(height: 20.0),
-
-                  // Continue button if an address is selected
-                  if (_selectedAddressId != null)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 15.0),
-                      child: SizedBox(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the dialog
-                            if (kDebugMode) {
-                              print("Selected Address ID: $_selectedAddressId");
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                          ),
-                          child: const Text(
-                            "Continue",
-                            style: TextStyle(fontSize: 16.0),
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
-        }),
-      ),
-    );
-  }
-}
-

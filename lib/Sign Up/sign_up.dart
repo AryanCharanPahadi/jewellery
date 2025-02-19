@@ -22,15 +22,17 @@ class _SignupContentState extends State<SignupContent> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
+    return GetBuilder<SignupController>(
+      builder: (controller) {
         ResponsivePaddingWidth responsive = ResponsivePaddingWidth(context);
+
+        bool isUpdating = controller.userDetails != null;
 
         return Center(
           child: SingleChildScrollView(
             padding: EdgeInsets.symmetric(horizontal: responsive.padding),
             child: Form(
-              key: signupController.formKey,
+              key: controller.formKey,
               child: CustomContainer(
                 width: responsive.width,
                 child: Column(
@@ -43,80 +45,88 @@ class _SignupContentState extends State<SignupContent> {
                         child: const Icon(Icons.close, color: Colors.red),
                       ),
                     ),
-                    const CustomTitleText(text: "Create Your Account"),
+                    CustomTitleText(
+                        text: isUpdating ? "Update Your Account" : "Create Your Account"),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Name",
                       icon: Icons.person,
-                      controller: signupController.nameController,
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Please enter your name'
-                          : null,
+                      controller: controller.nameController,
+                      validator: (value) =>
+                      value == null || value.isEmpty ? 'Please enter your name' : null,
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Phone Number",
                       icon: Icons.phone,
-                      controller: signupController.phoneController,
+                      controller: controller.phoneController,
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Email",
                       icon: Icons.email,
-                      controller: signupController.emailController,
+                      controller: controller.emailController,
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Password",
                       icon: Icons.lock,
-                      controller: signupController.passwordController,
+                      controller: controller.passwordController,
                       isObscure: true,
+                      validator: (value) {
+                        if (!isUpdating && (value == null || value.isEmpty)) {
+                          return 'Please enter a password';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Date of Birth",
                       icon: Icons.calendar_today,
-                      controller: signupController.dobController,
+                      controller: controller.dobController,
                       readOnly: true,
-                      isDateField:
-                          true, // This makes it trigger the date picker on tap
+                      isDateField: true, // Triggers the date picker on tap
                     ),
                     const SizedBox(height: 20),
                     CustomTextField(
                       label: "Anniversary Date",
                       icon: Icons.calendar_today,
-                      controller: signupController
-                          .anniversaryController, // Dynamic controller
-                      readOnly:
-                          true, // Makes it read-only, so the user can't type in it
-                      isDateField:
-                          true, // This makes it trigger the date picker on tap
+                      controller: controller.anniversaryController,
+                      readOnly: true,
+                      isDateField: true,
                     ),
                     const SizedBox(height: 30),
+
+                    // Show "Update" button if user details exist, otherwise "Sign Up"
                     GradientButton(
-                      text: "Sign Up",
-                      onPressed: () => signupController.submitForm(context),
+                      text: isUpdating ? "Update" : "Sign Up",
+                      onPressed: () => isUpdating
+                          ? controller.updateUserDetails(context)
+                          : controller.submitForm(context),
                     ),
                     const SizedBox(height: 20),
-                    Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          CustomTextWidgets.alreadyHaveAccountText(),
-                          const SizedBox(height: 10),
-                          GestureDetector(
-                              onTap: () {
-                                Navigator.pop(context); // Close the login page
 
+                    if (!isUpdating) // Show login redirection only for new users
+                      Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            CustomTextWidgets.alreadyHaveAccountText(),
+                            const SizedBox(height: 10),
+                            GestureDetector(
+                              onTap: () {
+                                Navigator.pop(context); // Close signup page
                                 PopupDialog(
                                   parentContext: context,
                                   childWidget: const LoginPage(),
-                                ).show(); // Show signup popup
+                                ).show(); // Show login popup
                               },
-                              child: CustomTextWidgets.signIn()),
-                        ],
+                              child: CustomTextWidgets.signIn(),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ),

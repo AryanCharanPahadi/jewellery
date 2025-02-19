@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jewellery/About%20Us%20Page/about_us.dart';
 import 'package:jewellery/Login%20Page/login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Add To Cart/add_to_cart.dart';
+import 'FAQs/faqs_page.dart';
 import 'Profile Section/Main UI Profile Section/user_detail.dart';
 import 'Page not Found/page_not_found.dart';
 import 'Product Details/product_detail_page.dart';
@@ -25,7 +27,6 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     // Define GoRouter
     final GoRouter router = GoRouter(
       initialLocation: '/',
@@ -38,6 +39,14 @@ class MyApp extends StatelessWidget {
         GoRoute(
           path: '/login-page',
           builder: (context, state) => const LoginPage(),
+        ),
+        GoRoute(
+          path: '/about-us',
+          builder: (context, state) => const AboutUs(),
+        ),
+        GoRoute(
+          path: '/faqs',
+          builder: (context, state) => const FaqsPage(),
         ),
 
         // Route for UserDetailsScreen
@@ -53,10 +62,10 @@ class MyApp extends StatelessWidget {
         ),
 
         // Route for UserAddress
-        GoRoute(
-          path: '/user-address',
-          builder: (context, state) => const ListOfAddress(),
-        ),
+        // GoRoute(
+        //   path: '/user-address',
+        //   builder: (context, state) => const ListOfAddress(),
+        // ),
 
         // Route for SignupContent (Authentication page)
         GoRoute(
@@ -98,7 +107,6 @@ class MyApp extends StatelessWidget {
                 );
               },
             ),
-
           ],
         ),
       ],

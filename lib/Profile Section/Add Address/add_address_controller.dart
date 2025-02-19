@@ -6,9 +6,9 @@ import '../../Shared Preferences/shared_preferences_helper.dart';
 import '../User Address/user_address_controller.dart';
 import 'add_address_modal.dart';
 
-
 class AddAddressController extends GetxController {
-  final UserAddressController userAddressController = Get.put(UserAddressController());
+  final UserAddressController userAddressController =
+      Get.put(UserAddressController());
 
   final formKey = GlobalKey<FormState>();
   // Controllers for form fields
@@ -39,7 +39,8 @@ class AddAddressController extends GetxController {
     if (userId == null) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('User ID not found. Please log in again.')),
+          const SnackBar(
+              content: Text('User ID not found. Please log in again.')),
         );
       }
       return;
