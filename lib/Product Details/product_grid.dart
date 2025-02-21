@@ -3,9 +3,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jewellery/Product%20Details/product_modal.dart';
 import '../Api Helper/api_helper.dart';
-import '../Component/show_pop_up.dart';
 import '../Component/text_style.dart';
-import '../Component/unique_id.dart';
 import '../Component/value_builder.dart';
 import '../Headers/custom_header.dart';
 import '../Image Banner/custom_image_banner.dart';
@@ -15,9 +13,7 @@ import '../Component/text_container.dart';
 import '../Footer/footer.dart';
 import '../Home Screen/home_controller.dart';
 import '../Shared Preferences/shared_preferences_helper.dart';
-import '../Sign Up/sign_up.dart';
-import '../Wishlist/wishlist_controller.dart';
-import '../Wishlist/wishlist_modal.dart';
+
 
 class ProductGridMen extends StatefulWidget {
   final String itemTitle;
@@ -204,106 +200,7 @@ class _ProductGridMenState extends State<ProductGridMen> {
                                                         ),
                                                       ),
                                                     ),
-                                                    Positioned(
-                                                        top: 8,
-                                                        right: 8,
-                                                        child:
-                                                            ValueListenableBuilder<
-                                                                bool>(
-                                                          valueListenable:
-                                                              isLiked,
-                                                          builder: (context,
-                                                              liked, child) {
-                                                            return GestureDetector(
-                                                              onTap: () async {
-                                                                isLiked.value =
-                                                                    !liked;
 
-                                                                if (isLiked
-                                                                    .value) {
-                                                                  // Perform the function only if the icon is liked
-                                                                  bool
-                                                                      isLoggedIn =
-                                                                      await _checkLoginStatus();
-
-                                                                  if (isLoggedIn) {
-                                                                    // Fetch user ID from SharedPreferences
-                                                                    int?
-                                                                        userId =
-                                                                        await SharedPreferencesHelper
-                                                                            .getUserId();
-                                                                    String
-                                                                        formattedDate =
-                                                                        getFormattedDate();
-
-                                                                    if (userId !=
-                                                                        null) {
-                                                                      // Create WishlistModal object
-                                                                      WishlistModal
-                                                                          wishlistModal =
-                                                                          WishlistModal(
-                                                                        userId:
-                                                                            userId,
-                                                                        pId: products[index]
-                                                                            .itemId,
-                                                                        pPrice: products[index]
-                                                                            .itemPrice
-                                                                            .toString(),
-                                                                        createdAt:
-                                                                            formattedDate,
-                                                                      );
-
-                                                                      // Send data to the API
-                                                                      if (context
-                                                                          .mounted) {
-                                                                        bool success = await ApiService.addToWishlist(
-                                                                            wishlistModal,
-                                                                            context);
-
-                                                                        if (success) {
-                                                                          // Fetch the updated wishlist immediately
-                                                                          WishlistController
-                                                                              wishlistController =
-                                                                              Get.find<WishlistController>();
-                                                                          wishlistController
-                                                                              .fetchWishlist();
-                                                                        }
-                                                                      }
-                                                                    }
-                                                                  } else {
-                                                                    // Show login/signup dialog if the user is not logged in
-                                                                    WidgetsBinding
-                                                                        .instance
-                                                                        .addPostFrameCallback(
-                                                                            (_) {
-                                                                      if (context
-                                                                          .mounted) {
-                                                                        PopupDialog(
-                                                                          parentContext:
-                                                                              context,
-                                                                          childWidget:
-                                                                              const SignupContent(),
-                                                                        ).show();
-                                                                      }
-                                                                    });
-                                                                  }
-                                                                }
-                                                              },
-                                                              child: Icon(
-                                                                liked
-                                                                    ? Icons
-                                                                        .favorite
-                                                                    : Icons
-                                                                        .favorite_border,
-                                                                color: liked
-                                                                    ? Colors.red
-                                                                    : Colors
-                                                                        .black87,
-                                                                size: 24,
-                                                              ),
-                                                            );
-                                                          },
-                                                        )),
                                                   ],
                                                 ),
                                               ),

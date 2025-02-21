@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:jewellery/Login%20Page/login_page.dart';
 import '../Component/text_style.dart';
 import '../Component/unique_id.dart';
-import '../Profile Section/Add Address/add_address.dart';
 import '../Profile Section/User Address/list_of_address.dart';
 import '../Api Helper/api_helper.dart';
 import '../Component/show_pop_up.dart';
@@ -12,10 +12,7 @@ import '../Headers/custom_header.dart';
 import '../Headers/header2_delegates.dart';
 import '../Headers/second_header.dart';
 import '../Footer/footer.dart';
-
 import '../Shared Preferences/shared_preferences_helper.dart';
-import 'package:flutter/foundation.dart';
-
 import 'add_to_cart_modal.dart';
 
 class AddToCart extends StatefulWidget {
@@ -280,9 +277,10 @@ class _AddToCartState extends State<AddToCart> {
 
   Widget _buildOrderSummary(double screenWidth) {
     final subtotal = calculateTotalAmount();
-    const double deliveryCharge = 0.0;
+    final double deliveryCharge =
+        subtotal > 500 ? 0.0 : 50.0; // Delivery charge logic
     final gst = subtotal * 0.03;
-    final total = subtotal + gst + deliveryCharge;
+    final total = subtotal + gst + deliveryCharge; // Updated total calculation
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -301,6 +299,7 @@ class _AddToCartState extends State<AddToCart> {
                 child: Text("ORDER SUMMARY",
                     style: getTextStyle(
                       color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
                       fontSize: _getTextSize(screenWidth, 16),
                     )),
               ),
@@ -311,9 +310,23 @@ class _AddToCartState extends State<AddToCart> {
               _buildSummaryRow("Delivery Charge",
                   "₹ ${deliveryCharge.toStringAsFixed(2)}", screenWidth),
               const SizedBox(height: 8),
-              _buildSummaryRow(
-                  "GST (3%)", "₹ ${gst.toStringAsFixed(2)}", screenWidth),
-              const SizedBox(height: 8),
+
+              // Show message if subtotal is less than 500
+              if (subtotal < 500)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    "Add products worth ₹${(500 - subtotal).toStringAsFixed(2)} more for FREE delivery!",
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.bold,
+                      fontSize: _getTextSize(screenWidth, 14),
+                      fontFamily: GoogleFonts.cinzel()
+                          .fontFamily, // Replace with your actual font family name
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
               Divider(color: Colors.grey[300]),
               const SizedBox(height: 8),
               _buildSummaryRow(

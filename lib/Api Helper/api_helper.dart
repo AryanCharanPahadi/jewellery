@@ -605,6 +605,7 @@ class ApiService {
       throw Exception("Error fetching customer ratings: $e");
     }
   }
+
   static Future<bool> updateUserLogin({
     required int id,
     required String name,
@@ -650,7 +651,8 @@ class ApiService {
         );
       }
 
-      return jsonResponse['status'] == "success"; // ✅ Return based on API response
+      return jsonResponse['status'] ==
+          "success"; // ✅ Return based on API response
     } catch (e) {
       print('❌ Error updating login details: $e');
       if (context.mounted) {
@@ -659,5 +661,4 @@ class ApiService {
       return false;
     }
   }
-
 }

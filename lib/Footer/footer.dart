@@ -116,7 +116,7 @@ class _ResponsiveFooterState extends State<ResponsiveFooter> {
             style: getTextStyle(
               fontWeight: FontWeight.bold,
               fontSize: textSize + 4,
-              color: Colors.black ,
+              color: Colors.black,
             ),
           ),
           const SizedBox(height: 10),
@@ -171,7 +171,7 @@ class _ResponsiveFooterState extends State<ResponsiveFooter> {
                                 childWidget: LoginPage())
                             .show();
                       }
-                    }else if(item["text"]=="FAQs") {
+                    } else if (item["text"] == "FAQs") {
                       context.go("/faqs");
                     }
                   },
@@ -205,11 +205,22 @@ class _ResponsiveFooterState extends State<ResponsiveFooter> {
   }
 
   Widget _buildSocialIcon(IconData icon, Color color, double iconSize) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10.0),
-      child: CircleAvatar(
-        backgroundColor: color.withOpacity(0.2),
-        child: Icon(icon, color: color, size: iconSize),
+    return GestureDetector(
+      onTap: () async {
+        final Uri instagramUrl = Uri.parse(
+            "https://www.instagram.com/dazzle_den_11/?igsh=MXRpZGJrZXVpNDZrdw%3D%3D");
+        if (await canLaunchUrl(instagramUrl)) {
+          await launchUrl(instagramUrl, mode: LaunchMode.externalApplication);
+        } else {
+          print("Could not launch Instagram.");
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10.0),
+        child: CircleAvatar(
+          backgroundColor: color.withOpacity(0.2),
+          child: Icon(icon, color: color, size: iconSize),
+        ),
       ),
     );
   }

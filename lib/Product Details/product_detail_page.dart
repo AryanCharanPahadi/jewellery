@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-
 import 'package:get/get.dart';
 import 'package:jewellery/Product%20Details/product_modal.dart';
 import '../../Api Helper/api_helper.dart';
@@ -317,6 +316,10 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                                             fontSize: getResponsiveFontSize(20),
                                             color: Colors.green),
                                       ),
+                                      const SizedBox(height: 8),
+
+                                      // Product Price
+
                                       const SizedBox(height: 16),
 
                                       // Product Description

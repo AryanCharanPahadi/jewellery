@@ -32,7 +32,6 @@ class SharedPreferencesHelper {
     print("✅ Stored User Details: $storedData");
   }
 
-
   // 🔹 Get user details
   static Future<Map<String, dynamic>?> getUserDetails() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
